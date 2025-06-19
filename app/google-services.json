@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "913730216193",
+    "project_id": "cakeorderingapp-26342",
+    "storage_bucket": "cakeorderingapp-26342.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:913730216193:android:cfd4e65ef15a76eec7fb00",
+        "android_client_info": {
+          "package_name": "com.example.Cakeorderingapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJkgIgHgVuvXjFvsR1Oy9eWM2tVbBYWok"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:913730216193:android:53121c31ae166c7cc7fb00",
+        "android_client_info": {
+          "package_name": "com.example.cakeorderingapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJkgIgHgVuvXjFvsR1Oy9eWM2tVbBYWok"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
