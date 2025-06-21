@@ -1,4 +1,4 @@
-package com.example.cakeorderingapp
+package com.example.cakeorderingapp.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

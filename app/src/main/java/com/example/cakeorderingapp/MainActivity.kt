@@ -9,8 +9,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.example.cakeorderingapp.navigation.NavGraph
 import com.example.cakeorderingapp.ui.theme.CakeorderingappTheme
 import com.google.firebase.FirebaseApp
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,7 +25,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    SetupNavGraph(navController)
+                    NavGraph(navController)
                 }
             }
         }

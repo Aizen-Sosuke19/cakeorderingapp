@@ -1,22 +1,31 @@
-package com.example.cakeorderingapp
-
+package com.example.cakeorderingapp.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.cakeorderingapp.data.Cake
 
 @Composable
 fun CakeSelectionScreen(navController: NavHostController) {
     val cakes = listOf(
-        Cake("chocolate", "Chocolate", 1500.0, "Rich chocolate cake", "Dark Chocolate"),
-        Cake("vanilla", "Vanilla", 1200.0, "Creamy vanilla cake", "Madagascar Vanilla"),
-        Cake("strawberry", "Strawberry", 1300.0, "Fresh strawberry cake", "Fresh Strawberry")
+        Cake(
+            "chocolate", "Chocolate", 1500.0, "Rich chocolate cake", "Dark Chocolate",
+            imageUrl =""
+        ),
+        Cake(
+            "vanilla", "Vanilla", 1200.0, "Creamy vanilla cake", "Madagascar Vanilla",
+            imageUrl =""
+        ),
+        Cake(
+            "strawberry", "Strawberry", 1300.0, "Fresh strawberry cake", "Fresh Strawberry",
+            imageUrl =""
+        )
     )
 
     LazyColumn(
@@ -30,7 +39,6 @@ fun CakeSelectionScreen(navController: NavHostController) {
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
                     .clickable { navController.navigate("cake_details/${cake.id}") },
-                onClick = { navController.navigate("cake_details/${cake.id}") }
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(cake.name, style = MaterialTheme.typography.titleMedium)

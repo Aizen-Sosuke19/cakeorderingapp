@@ -1,6 +1,6 @@
-package com.example.cakeorderingapp
+package com.example.cakeorderingapp.screens
 
-
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -10,6 +10,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 
 @Composable
 fun LoginScreen(navController: NavHostController) {
@@ -48,16 +52,34 @@ fun LoginScreen(navController: NavHostController) {
         Button(
             onClick = {
                 if (email.isNotBlank() && password.isNotBlank()) {
-                    auth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                navController.navigate("dashboard") {
-                                    popUpTo("login") { inclusive = true }
+                    if (!isValidEmail(email)) {
+                        error = "Invalid email format"
+                        return@Button
+                    }
+                    try {
+                        auth.signInWithEmailAndPassword(email, password)
+                            .addOnSuccessListener {
+                                if (auth.currentUser != null) {
+                                    navController.navigate("dashboard") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                } else {
+                                    error = "User not authenticated"
+                                    Log.e("Login", "User is null after successful login")
                                 }
-                            } else {
-                                error = task.exception?.message ?: "Login failed"
                             }
-                        }
+                            .addOnFailureListener { exception ->
+                                error = when (exception) {
+                                    is FirebaseAuthInvalidCredentialsException -> "Invalid email or password"
+                                    is FirebaseAuthInvalidUserException -> "No account found with this email"
+                                    else -> exception.message ?: "Login failed"
+                                }
+                                Log.e("Login", "Error: ${exception.message}", exception)
+                            }
+                    } catch (e: Exception) {
+                        error = "Unexpected error: ${e.message}"
+                        Log.e("Login", "Unexpected error: ${e.message}", e)
+                    }
                 } else {
                     error = "Email and password cannot be empty"
                 }
@@ -134,17 +156,40 @@ fun SignUpScreen(navController: NavHostController) {
 
         Button(
             onClick = {
-                if (password == confirmPassword && email.isNotBlank() && password.isNotBlank()) {
-                    auth.createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                navController.navigate("dashboard") {
-                                    popUpTo("sign_up") { inclusive = true }
+                if (email.isNotBlank() && password.isNotBlank() && password == confirmPassword) {
+                    if (!isValidEmail(email)) {
+                        error = "Invalid email format"
+                        return@Button
+                    }
+                    if (password.length < 6) {
+                        error = "Password must be at least 6 characters"
+                        return@Button
+                    }
+                    try {
+                        auth.createUserWithEmailAndPassword(email, password)
+                            .addOnSuccessListener {
+                                if (auth.currentUser != null) {
+                                    navController.navigate("dashboard") {
+                                        popUpTo("sign_up") { inclusive = true }
+                                    }
+                                } else {
+                                    error = "User not authenticated"
+                                    Log.e("SignUp", "User is null after successful signup")
                                 }
-                            } else {
-                                error = task.exception?.message ?: "Registration failed"
                             }
-                        }
+                            .addOnFailureListener { exception ->
+                                error = when (exception) {
+                                    is FirebaseAuthWeakPasswordException -> "Password is too weak"
+                                    is FirebaseAuthInvalidCredentialsException -> "Invalid email format"
+                                    is FirebaseAuthUserCollisionException -> "Email already in use"
+                                    else -> exception.message ?: "Registration failed"
+                                }
+                                Log.e("SignUp", "Error: ${exception.message}", exception)
+                            }
+                    } catch (e: Exception) {
+                        error = "Unexpected error: ${e.message}"
+                        Log.e("SignUp", "Unexpected error: ${e.message}", e)
+                    }
                 } else {
                     error = "Passwords do not match or fields are empty"
                 }
@@ -197,16 +242,28 @@ fun ForgotPasswordScreen(navController: NavHostController) {
         Button(
             onClick = {
                 if (email.isNotBlank()) {
-                    auth.sendPasswordResetEmail(email)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
+                    if (!isValidEmail(email)) {
+                        error = "Invalid email format"
+                        return@Button
+                    }
+                    try {
+                        auth.sendPasswordResetEmail(email)
+                            .addOnSuccessListener {
                                 successMessage = "Password reset email sent. Check your inbox."
                                 error = ""
-                            } else {
-                                error = task.exception?.message ?: "Failed to send reset email"
-                                successMessage = ""
                             }
-                        }
+                            .addOnFailureListener { exception ->
+                                error = when (exception) {
+                                    is FirebaseAuthInvalidUserException -> "No account found with this email"
+                                    else -> exception.message ?: "Failed to send reset email"
+                                }
+                                successMessage = ""
+                                Log.e("ForgotPassword", "Error: ${exception.message}", exception)
+                            }
+                    } catch (e: Exception) {
+                        error = "Unexpected error: ${e.message}"
+                        Log.e("ForgotPassword", "Unexpected error: ${e.message}", e)
+                    }
                 } else {
                     error = "Please enter your email"
                 }
@@ -233,4 +290,8 @@ fun ForgotPasswordScreen(navController: NavHostController) {
             Text(successMessage, color = MaterialTheme.colorScheme.primary)
         }
     }
+}
+
+fun isValidEmail(email: String): Boolean {
+    return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex())
 }

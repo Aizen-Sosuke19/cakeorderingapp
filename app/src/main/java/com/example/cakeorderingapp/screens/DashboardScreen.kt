@@ -1,4 +1,4 @@
-package com.example.cakeorderingapp
+package com.example.cakeorderingapp.screens
 
 
 import android.util.Log
@@ -12,8 +12,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +42,7 @@ fun DashboardScreen(navController: NavHostController) {
                         if (userId != null) {
                             val latestOrder = db.collection("orders")
                                 .whereEqualTo("userId", userId)
-                                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                                .orderBy("timestamp", Query.Direction.DESCENDING)
                                 .limit(1)
                                 .get()
                                 .await()
@@ -81,7 +83,7 @@ fun DashboardScreen(navController: NavHostController) {
                     if (userId != null) {
                         val latestOrder = db.collection("orders")
                             .whereEqualTo("userId", userId)
-                            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                            .orderBy("timestamp", Query.Direction.DESCENDING)
                             .limit(1)
                             .get()
                             .await()
@@ -134,7 +136,7 @@ fun DashboardScreen(navController: NavHostController) {
                         .padding(end = 8.dp)
                         .clickable {
                             cakesBoxClicked = true
-                            navController.navigate("cake_list") {
+                            navController.navigate("cake_selection") {
                                 launchSingleTop = true
                                 restoreState = true
                             }
