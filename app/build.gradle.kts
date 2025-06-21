@@ -63,8 +63,8 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-analytics")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
-    implementation ("androidx.compose.material3:material3:1.3.0")
+    implementation("androidx.navigation:navigation-compose:2.9.0")
+    implementation ("androidx.compose.material3:material3:1.3.2")
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("io.coil-kt:coil-compose:2.7.0")
 }
