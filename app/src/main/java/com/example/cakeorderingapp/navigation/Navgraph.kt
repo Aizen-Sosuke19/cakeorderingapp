@@ -33,6 +33,9 @@ fun NavGraph(navController: NavHostController) {
         composable("cake_selection") {
             CakeSelectionScreen(navController = navController)
         }
+        composable ("delivery_tracking") {
+            DeliveryTrackingScreen(navController = navController)
+        }
         composable("cake_details/{cakeId}") { backStackEntry ->
             Text("Cake Details: ${backStackEntry.arguments?.getString("cakeId")}")
         }
@@ -44,10 +47,7 @@ fun NavGraph(navController: NavHostController) {
             val flavourId = backStackEntry.arguments?.getString("flavourId") ?: ""
             PurchaseScreen(flavourId = flavourId, navController = navController)
         }
-        composable("delivery_tracking/{flavourId}") { backStackEntry ->
-            val flavourId = backStackEntry.arguments?.getString("flavourId") ?: ""
-            DeliveryTrackingScreen( flavourId = flavourId, navController = navController)
-        }
+
         composable("flavour_screen") {backStackEntry ->
             val flavourId = backStackEntry.arguments?.getString("flavourId") ?: ""
             FlavourScreen(navController = navController, flavourId = flavourId)

@@ -14,9 +14,9 @@ import androidx.navigation.NavHostController
 import com.example.cakeorderingapp.viewmodel.OrderViewModel
 
 @Composable
-fun DeliveryTrackingScreen(navController: NavHostController, flavourId: String) {
+fun DeliveryTrackingScreen(navController: NavHostController) {
     val viewModel: OrderViewModel = viewModel()
-    val orders = viewModel.orders.collectAsState() // Remove 'by' and use .value later
+    val orders = viewModel.orders.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.fetchOrders()
