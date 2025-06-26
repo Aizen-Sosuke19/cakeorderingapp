@@ -14,10 +14,14 @@ import com.example.cakeorderingapp.screens.OrderFormScreen
 import com.example.cakeorderingapp.screens.CakeSelectionScreen
 import com.example.cakeorderingapp.screens.FlavourScreen
 import com.example.cakeorderingapp.screens.PurchaseScreen
+import com.example.cakeorderingapp.screens.SplashScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = "splash") {
+        composable("splash") {
+            SplashScreen(navController = navController)
+        }
         composable("login") {
             LoginScreen(navController = navController)
         }
