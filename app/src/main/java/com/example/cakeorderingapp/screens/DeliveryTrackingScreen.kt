@@ -11,11 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.cakeorderingapp.data.Order
 import com.example.cakeorderingapp.viewmodel.OrderViewModel
 
 @Composable
-fun DeliveryTrackingScreen(navController: NavHostController) {
+fun DeliveryTrackingScreen(navController: NavHostController, flavourId: String) {
     val viewModel: OrderViewModel = viewModel()
     val orders = viewModel.orders.collectAsState() // Remove 'by' and use .value later
 

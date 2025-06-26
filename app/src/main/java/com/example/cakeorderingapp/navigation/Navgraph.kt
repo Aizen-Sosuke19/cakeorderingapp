@@ -12,7 +12,8 @@ import com.example.cakeorderingapp.screens.LoginScreen
 import com.example.cakeorderingapp.screens.SignUpScreen
 import com.example.cakeorderingapp.screens.OrderFormScreen
 import com.example.cakeorderingapp.screens.CakeSelectionScreen
-import com.example.cakeorderingapp.screens.FlavoursScreen
+import com.example.cakeorderingapp.screens.FlavourScreen
+import com.example.cakeorderingapp.screens.PurchaseScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -33,19 +34,26 @@ fun NavGraph(navController: NavHostController) {
             CakeSelectionScreen(navController = navController)
         }
         composable("cake_details/{cakeId}") { backStackEntry ->
-            // Placeholder: Implement CakeDetailsScreen if needed
             Text("Cake Details: ${backStackEntry.arguments?.getString("cakeId")}")
         }
         composable("order_form/{cakeId}") { backStackEntry ->
             val cakeId = backStackEntry.arguments?.getString("cakeId") ?: ""
             OrderFormScreen(navController = navController, cakeId = cakeId, selectedLocation = null)
         }
-        composable("delivery_tracking") {
-            DeliveryTrackingScreen(navController = navController)
+        composable("purchase/{flavourId}") { backStackEntry ->
+            val flavourId = backStackEntry.arguments?.getString("flavourId") ?: ""
+            PurchaseScreen(flavourId = flavourId, navController = navController)
         }
-        composable("flavour_screen") {
-            FlavoursScreen(navController = navController)
+        composable("delivery_tracking/{flavourId}") { backStackEntry ->
+            val flavourId = backStackEntry.arguments?.getString("flavourId") ?: ""
+            DeliveryTrackingScreen( flavourId = flavourId, navController = navController)
+        }
+        composable("flavour_screen") {backStackEntry ->
+            val flavourId = backStackEntry.arguments?.getString("flavourId") ?: ""
+            FlavourScreen(navController = navController, flavourId = flavourId)
+        }
         }
     }
-}
+
+
 
