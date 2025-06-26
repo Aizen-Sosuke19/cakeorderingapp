@@ -1,9 +1,9 @@
-package com.example.cakeorderingapp.viewmodel
+package com.example.cakeorderingapp.ui.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cakeorderingapp.data.Order
+import com.example.cakeorderingapp.ui.data.Order
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -1,4 +1,4 @@
-package com.example.cakeorderingapp.data
+package com.example.cakeorderingapp.ui.data
 
 data class Cake(
     val id: String,

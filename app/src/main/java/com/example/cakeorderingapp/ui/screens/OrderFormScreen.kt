@@ -1,5 +1,7 @@
-package com.example.cakeorderingapp.screens
+package com.example.cakeorderingapp.ui.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -8,10 +10,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.cakeorderingapp.data.Cake
-import com.example.cakeorderingapp.data.Order
-import com.example.cakeorderingapp.viewmodel.OrderViewModel
+import com.example.cakeorderingapp.ui.data.Cake
+import com.example.cakeorderingapp.ui.data.Order
+import com.example.cakeorderingapp.ui.viewmodel.OrderViewModel
+import java.time.Instant
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun OrderFormScreen(
     navController: NavHostController,
@@ -59,12 +63,17 @@ fun OrderFormScreen(
             onClick = {
                 val qty = quantity.toIntOrNull()
                 if (qty != null && qty > 0 && deliveryAddress.isNotBlank()) {
+                    val orderId = ""
                     val order = Order(
                         cakeId = cake.id,
                         cakeName = cake.name,
                         quantity = qty,
                         totalPrice = cake.price * qty,
-                        deliveryAddress = deliveryAddress
+                        deliveryAddress = deliveryAddress,
+                        id = orderId,
+                        flavourId = cakeId,
+                        amount = cake.price,
+                        timestamp = Instant.now().toString()
                     )
                     viewModel.submitOrder(
                         order = order,

@@ -1,4 +1,4 @@
-package com.example.cakeorderingapp.screens
+package com.example.cakeorderingapp.ui.screens
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween

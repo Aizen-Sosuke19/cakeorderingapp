@@ -1,4 +1,4 @@
-package com.example.cakeorderingapp.screens
+package com.example.cakeorderingapp.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.cakeorderingapp.data.Cake
+import com.example.cakeorderingapp.ui.data.Cake
 
 @Composable
 fun CakeSelectionScreen(navController: NavHostController) {

@@ -1,5 +1,7 @@
-package com.example.cakeorderingapp.screens
+package com.example.cakeorderingapp.ui.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
@@ -37,13 +39,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.cakeorderingapp.data.CakeFlavour
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.cakeorderingapp.ui.data.Order
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.time.Instant
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PurchaseScreen(flavourId: String, navController: NavController) {
-    val db = FirebaseFirestore.getInstance()
+    val db = Firebase.database.reference
+    val auth = FirebaseAuth.getInstance()
     var flavour by remember { mutableStateOf<CakeFlavour?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -53,15 +64,17 @@ fun PurchaseScreen(flavourId: String, navController: NavController) {
 
     // Fetch flavour details
     LaunchedEffect(flavourId) {
-        db.collection("flavours").document(flavourId).get()
-            .addOnSuccessListener { document ->
-                flavour = document.toObject(CakeFlavour::class.java)?.copy(id = document.id)
+        db.child("flavours").child(flavourId).addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                flavour = snapshot.getValue(CakeFlavour::class.java)?.copy(id = snapshot.key ?: "")
                 isLoading = false
             }
-            .addOnFailureListener { e ->
-                errorMessage = "Failed to load flavour: ${e.message}"
+
+            override fun onCancelled(error: DatabaseError) {
+                errorMessage = "Failed to load flavour: ${error.message}"
                 isLoading = false
             }
+        })
     }
 
     // Show error snackbar
@@ -77,7 +90,7 @@ fun PurchaseScreen(flavourId: String, navController: NavController) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Color.Black,
-        contentColor = Color(0xFFFFD700) // Gold
+        contentColor = Color(0xFFFFD700)
     ) { padding ->
         Box(
             modifier = Modifier
@@ -188,17 +201,30 @@ fun PurchaseScreen(flavourId: String, navController: NavController) {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        // Placeholder for M-Pesa payment via Firebase Cloud Function
                         coroutineScope.launch {
                             try {
-                                // Simulate payment processing
-                                // Replace with actual Cloud Function call
-                                // e.g., db.collection("payments").add(...)
-                                snackbarHostState.showSnackbar("Payment initiated successfully!")
+                                val userId = auth.currentUser?.uid
+                                if (userId == null) {
+                                    snackbarHostState.showSnackbar("Please log in to place an order")
+                                    navController.navigate("login")
+                                    return@launch
+                                }
+                                val orderId = db.child("orders").push().key ?: return@launch
+                                val order = Order(
+                                    id = orderId,
+                                    flavourId = flavourId,
+                                    userId = userId,
+                                    amount = flavour?.price ?: 0.0,
+                                    status = "Pending",
+                                    timestamp = Instant.now().toString()
+                                )
+                                // Use await() to handle Firebase Task in a suspending manner
+                                db.child("orders").child(orderId).setValue(order).await()
+                                snackbarHostState.showSnackbar("Payment initiated and order created!")
                                 showDialog = false
-                                navController.navigate("delivery_tracking/${flavourId}")
+                                navController.navigate("delivery_tracking/$flavourId")
                             } catch (e: Exception) {
-                                snackbarHostState.showSnackbar("Payment failed: ${e.message}")
+                                snackbarHostState.showSnackbar("Failed to create order: ${e.message}")
                             }
                         }
                     },

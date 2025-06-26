@@ -1,4 +1,4 @@
-package com.example.cakeorderingapp.screens
+package com.example.cakeorderingapp.ui.screens
 
 
 import androidx.compose.foundation.clickable
@@ -14,7 +14,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.example.cakeorderingapp.data.Cake
+import com.example.cakeorderingapp.ui.data.Cake
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch

@@ -1,4 +1,4 @@
-package com.example.cakeorderingapp.screens
+package com.example.cakeorderingapp.ui.screens
 
 import android.util.Log
 import androidx.compose.foundation.layout.*
