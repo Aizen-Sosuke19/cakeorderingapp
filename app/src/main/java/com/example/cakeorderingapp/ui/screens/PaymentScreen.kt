@@ -62,7 +62,7 @@ fun PurchaseScreen(flavourId: String, navController: NavController) {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    // Fetch flavour details
+
     LaunchedEffect(flavourId) {
         db.child("flavours").child(flavourId).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -77,7 +77,7 @@ fun PurchaseScreen(flavourId: String, navController: NavController) {
         })
     }
 
-    // Show error snackbar
+
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             coroutineScope.launch {
@@ -181,7 +181,7 @@ fun PurchaseScreen(flavourId: String, navController: NavController) {
         }
     }
 
-    // Confirmation Dialog
+
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },

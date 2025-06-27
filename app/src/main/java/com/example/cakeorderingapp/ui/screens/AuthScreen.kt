@@ -1,5 +1,6 @@
 package com.example.cakeorderingapp.ui.screens
 
+
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -14,13 +15,16 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(navController: NavHostController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
     val auth = FirebaseAuth.getInstance()
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -34,9 +38,10 @@ fun LoginScreen(navController: NavHostController) {
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = { email = it.trim() },
             label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = error.isNotEmpty()
         )
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -45,48 +50,58 @@ fun LoginScreen(navController: NavHostController) {
             onValueChange = { password = it },
             label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = error.isNotEmpty()
         )
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = {
-                if (email.isNotBlank() && password.isNotBlank()) {
-                    if (!isValidEmail(email)) {
-                        error = "Invalid email format"
-                        return@Button
-                    }
+                if (email.isBlank() || password.isBlank()) {
+                    error = "Email and password cannot be empty"
+                    return@Button
+                }
+                if (!isValidEmail(email)) {
+                    error = "Invalid email format"
+                    return@Button
+                }
+                isLoading = true
+                coroutineScope.launch {
                     try {
                         auth.signInWithEmailAndPassword(email, password)
-                            .addOnSuccessListener {
-                                if (auth.currentUser != null) {
+                            .addOnCompleteListener { task ->
+                                isLoading = false
+                                if (task.isSuccessful && auth.currentUser != null) {
                                     navController.navigate("dashboard") {
                                         popUpTo("login") { inclusive = true }
                                     }
+                                    email = ""
+                                    password = ""
+                                    error = ""
                                 } else {
-                                    error = "User not authenticated"
-                                    Log.e("Login", "User is null after successful login")
+                                    error = when (val exception = task.exception) {
+                                        is FirebaseAuthInvalidCredentialsException -> "Invalid email or password"
+                                        is FirebaseAuthInvalidUserException -> "No account found with this email"
+                                        else -> exception?.message ?: "Login failed"
+                                    }
+                                    Log.e("Login", "Error: ${task.exception?.message}", task.exception)
                                 }
-                            }
-                            .addOnFailureListener { exception ->
-                                error = when (exception) {
-                                    is FirebaseAuthInvalidCredentialsException -> "Invalid email or password"
-                                    is FirebaseAuthInvalidUserException -> "No account found with this email"
-                                    else -> exception.message ?: "Login failed"
-                                }
-                                Log.e("Login", "Error: ${exception.message}", exception)
                             }
                     } catch (e: Exception) {
+                        isLoading = false
                         error = "Unexpected error: ${e.message}"
                         Log.e("Login", "Unexpected error: ${e.message}", e)
                     }
-                } else {
-                    error = "Email and password cannot be empty"
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
         ) {
-            Text("Login")
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            } else {
+                Text("Login")
+            }
         }
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -116,7 +131,9 @@ fun SignUpScreen(navController: NavHostController) {
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
     val auth = FirebaseAuth.getInstance()
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -130,9 +147,10 @@ fun SignUpScreen(navController: NavHostController) {
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = { email = it.trim() },
             label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = error.isNotEmpty()
         )
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -141,7 +159,8 @@ fun SignUpScreen(navController: NavHostController) {
             onValueChange = { password = it },
             label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = error.isNotEmpty()
         )
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -150,53 +169,68 @@ fun SignUpScreen(navController: NavHostController) {
             onValueChange = { confirmPassword = it },
             label = { Text("Confirm Password") },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = error.isNotEmpty()
         )
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = {
-                if (email.isNotBlank() && password.isNotBlank() && password == confirmPassword) {
-                    if (!isValidEmail(email)) {
-                        error = "Invalid email format"
-                        return@Button
-                    }
-                    if (password.length < 6) {
-                        error = "Password must be at least 6 characters"
-                        return@Button
-                    }
+                if (email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+                    error = "All fields are required"
+                    return@Button
+                }
+                if (!isValidEmail(email)) {
+                    error = "Invalid email format"
+                    return@Button
+                }
+                if (password != confirmPassword) {
+                    error = "Passwords do not match"
+                    return@Button
+                }
+                if (password.length < 6) {
+                    error = "Password must be at least 6 characters"
+                    return@Button
+                }
+                isLoading = true
+                coroutineScope.launch {
                     try {
                         auth.createUserWithEmailAndPassword(email, password)
-                            .addOnSuccessListener {
-                                if (auth.currentUser != null) {
+                            .addOnCompleteListener { task ->
+                                isLoading = false
+                                if (task.isSuccessful && auth.currentUser != null) {
                                     navController.navigate("dashboard") {
                                         popUpTo("sign_up") { inclusive = true }
                                     }
+                                    email = ""
+                                    password = ""
+                                    confirmPassword = ""
+                                    error = ""
                                 } else {
-                                    error = "User not authenticated"
-                                    Log.e("SignUp", "User is null after successful signup")
+                                    error = when (val exception = task.exception) {
+                                        is FirebaseAuthWeakPasswordException -> "Password is too weak"
+                                        is FirebaseAuthInvalidCredentialsException -> "Invalid email format"
+                                        is FirebaseAuthUserCollisionException -> "Email already in use"
+                                        else -> exception?.message ?: "Registration failed"
+                                    }
+                                    Log.e("SignUp", "Error: ${task.exception?.message}", task.exception)
                                 }
-                            }
-                            .addOnFailureListener { exception ->
-                                error = when (exception) {
-                                    is FirebaseAuthWeakPasswordException -> "Password is too weak"
-                                    is FirebaseAuthInvalidCredentialsException -> "Invalid email format"
-                                    is FirebaseAuthUserCollisionException -> "Email already in use"
-                                    else -> exception.message ?: "Registration failed"
-                                }
-                                Log.e("SignUp", "Error: ${exception.message}", exception)
                             }
                     } catch (e: Exception) {
+                        isLoading = false
                         error = "Unexpected error: ${e.message}"
                         Log.e("SignUp", "Unexpected error: ${e.message}", e)
                     }
-                } else {
-                    error = "Passwords do not match or fields are empty"
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
         ) {
-            Text("Sign Up")
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            } else {
+                Text("Sign Up")
+            }
         }
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -219,7 +253,9 @@ fun ForgotPasswordScreen(navController: NavHostController) {
     var email by remember { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
     var successMessage by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
     val auth = FirebaseAuth.getInstance()
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -233,44 +269,61 @@ fun ForgotPasswordScreen(navController: NavHostController) {
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = { email = it.trim() },
             label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = error.isNotEmpty()
         )
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = {
-                if (email.isNotBlank()) {
-                    if (!isValidEmail(email)) {
-                        error = "Invalid email format"
-                        return@Button
-                    }
+                if (email.isBlank()) {
+                    error = "Please enter your email"
+                    successMessage = ""
+                    return@Button
+                }
+                if (!isValidEmail(email)) {
+                    error = "Invalid email format"
+                    successMessage = ""
+                    return@Button
+                }
+                isLoading = true
+                coroutineScope.launch {
                     try {
                         auth.sendPasswordResetEmail(email)
-                            .addOnSuccessListener {
-                                successMessage = "Password reset email sent. Check your inbox."
-                                error = ""
-                            }
-                            .addOnFailureListener { exception ->
-                                error = when (exception) {
-                                    is FirebaseAuthInvalidUserException -> "No account found with this email"
-                                    else -> exception.message ?: "Failed to send reset email"
+                            .addOnCompleteListener { task ->
+                                isLoading = false
+                                if (task.isSuccessful) {
+                                    successMessage = "Password reset email sent. Check your inbox or spam folder."
+                                    error = ""
+                                    email = ""
+                                } else {
+                                    error = when (val exception = task.exception) {
+                                        is FirebaseAuthInvalidUserException -> "No account found with this email"
+                                        is FirebaseAuthInvalidCredentialsException -> "Invalid email format"
+                                        else -> exception?.message ?: "Failed to send reset email"
+                                    }
+                                    successMessage = ""
+                                    Log.e("ForgotPassword", "Error: ${task.exception?.message}", task.exception)
                                 }
-                                successMessage = ""
-                                Log.e("ForgotPassword", "Error: ${exception.message}", exception)
                             }
                     } catch (e: Exception) {
+                        isLoading = false
                         error = "Unexpected error: ${e.message}"
+                        successMessage = ""
                         Log.e("ForgotPassword", "Unexpected error: ${e.message}", e)
                     }
-                } else {
-                    error = "Please enter your email"
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
         ) {
-            Text("Send Reset Email")
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            } else {
+                Text("Send Reset Email")
+            }
         }
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -293,5 +346,5 @@ fun ForgotPasswordScreen(navController: NavHostController) {
 }
 
 fun isValidEmail(email: String): Boolean {
-    return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex())
+    return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
 }
